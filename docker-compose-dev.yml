@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  axonserver:
+    image: axoniq/axonserver
+    hostname: test-axon-server
+    environment:
+      - AXONIQ_AXONSERVER_DEVMODE_ENABLED=true
+      - AXON_SERVER_NAME=test-axon-server
+      - AXON_SERVER_HOSTNAME=localhost
+      - AXONIQ_AXONSERVER_STANDALONE=true
+    volumes:
+      - ./docker-data/axonserver-data:/data
+      - ./docker-data/axonserver-events:/eventdata
+      - ./docker-data/axonserver-config:/config
+    ports:
+      - "8024:8024"
+      - "8124:8124"
+      - "8224:8224"
+    networks:
+      - axonserver
+
+volumes:
+  docker-data:
+    driver: local
+
+networks:
+  axonserver:
+    driver: bridge

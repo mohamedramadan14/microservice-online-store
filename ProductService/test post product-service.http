@@ -1,0 +1,9 @@
+
+POST http://localhost:8082/product-service/products
+Content-Type: application/json
+
+{
+  "title": "",
+  "price": 1020,
+  "qty": 5
+}
