@@ -25,7 +25,7 @@ public class ProductServiceErrorHandler {
 
         return new ResponseEntity<>(errorMessage,
                 new HttpHeaders(),
-                HttpStatus.CONFLICT);
+                HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {Exception.class})

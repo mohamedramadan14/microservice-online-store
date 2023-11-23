@@ -23,7 +23,6 @@ public class CreateProductCommandInterceptor implements MessageDispatchIntercept
 
     @Nonnull
     @Override
-
     public BiFunction<Integer, CommandMessage<?>, CommandMessage<?>> handle(@Nonnull List<? extends CommandMessage<?>> messages) {
         return (index , command) ->{
 

@@ -38,8 +38,6 @@ public class ProductAggregate {
         BeanUtils.copyProperties(createProductCommand, productCreatedEvent);
 
         AggregateLifecycle.apply(productCreatedEvent);
-
-
     }
     @EventSourcingHandler
     public void on(ProductCreatedEvent productCreatedEvent){

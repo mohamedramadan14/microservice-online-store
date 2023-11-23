@@ -20,12 +20,14 @@ public class ProductCommandController {
 
     @PostMapping
     public String createProduct(@Valid @RequestBody CreateProductModel productModel){
+
         CreateProductCommand createProductCommand = CreateProductCommand.builder()
                 .price(productModel.getPrice())
                 .qty(productModel.getQty())
                 .title(productModel.getTitle())
                 .productId(UUID.randomUUID().toString())
                 .build();
+
         String response = commandGateway.sendAndWait(createProductCommand);
 //        try {
 //            response = commandGateway.sendAndWait(createProductCommand);
