@@ -1,6 +1,7 @@
 package mo.mo.orderservice.command;
 
 import mo.mo.orderservice.command.models.OrderStatus;
+import mo.mo.orderservice.core.events.OrderApprovedEvent;
 import mo.mo.orderservice.core.events.OrderCreatedEvent;
 import lombok.NoArgsConstructor;
 import org.axonframework.commandhandling.CommandHandler;
@@ -50,6 +51,18 @@ public class OrderAggregate {
         AggregateLifecycle.apply(orderCreatedEvent);
     }
 
+    @CommandHandler
+    public void handle(ApproveOrderCommand approveOrderCommand) {
+        if(approveOrderCommand.getOrderId() == null || approveOrderCommand.getOrderId().isBlank()){
+            throw new IllegalArgumentException("OrderId cannot be empty");
+        }
+        // publish OrderApprovedEvent
+        OrderApprovedEvent orderApprovedEvent = OrderApprovedEvent.builder()
+                .orderId(approveOrderCommand.getOrderId())
+                .orderStatus(OrderStatus.APPROVED)
+                .build();
+        AggregateLifecycle.apply(orderApprovedEvent);
+    }
     @EventSourcingHandler
     public void on(OrderCreatedEvent orderCreatedEvent){
         this.orderId = orderCreatedEvent.getOrderId();
@@ -58,5 +71,10 @@ public class OrderAggregate {
         this.qty = orderCreatedEvent.getQty();
         this.addressId = orderCreatedEvent.getAddressId();
         this.orderStatus = orderCreatedEvent.getOrderStatus();
+    }
+
+    @EventSourcingHandler
+    public void on(OrderApprovedEvent orderApprovedEvent){
+        this.orderStatus = orderApprovedEvent.getOrderStatus();
     }
 }

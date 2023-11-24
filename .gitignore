@@ -1,6 +1,8 @@
 docker-data
 products-data.mv.db
 orders-data.mv.db
+orders-data.trace.db
+payments-data.mv.db
 
 
 .idea
