@@ -1,5 +1,6 @@
 package mo.mo.estore.productservice.query;
 
+import mo.core.events.ProductReservationCancelEvent;
 import mo.core.events.ProductReservedEvent;
 import mo.mo.estore.productservice.core.data.ProductEntity;
 import mo.mo.estore.productservice.core.data.ProductRepository;
@@ -50,7 +51,23 @@ public class ProductEventHandler {
         Optional<ProductEntity> product = repository.findById(event.getProductId());
         if (product.isPresent()) {
             ProductEntity entity = product.get();
+            log.debug("change qty of the product with Id : {} by decreased it's inventory by {}"
+                    , event.getProductId() , event.getQty() );
             entity.setQty(entity.getQty() - event.getQty());
+            repository.save(entity);
+        }
+    }
+
+    @EventHandler
+    public void on(ProductReservationCancelEvent productReservationCancelEvent){
+        log.info("Product Reservation canceled with ProductId : {}" , productReservationCancelEvent.getProductId());
+        Optional<ProductEntity> product = repository.findByProductId(productReservationCancelEvent.getProductId());
+        ProductEntity entity;
+        if(product.isPresent()) {
+            entity = product.get();
+            log.debug("change qty of the product with Id : {} by increased it's inventory by {}"
+                    , productReservationCancelEvent.getProductId() , productReservationCancelEvent.getQty() );
+            entity.setQty(entity.getQty() + productReservationCancelEvent.getQty());
             repository.save(entity);
         }
     }

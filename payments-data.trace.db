@@ -1,0 +1,9 @@
+2023-11-25 12:20:20 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "TOKEN_ENTRY" not found (this database is empty); SQL statement:
+update token_entry set timestamp=? where processor_name=? and segment=? and owner=? [42104-214]
+2023-11-25 12:20:20 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "TOKEN_ENTRY" not found (this database is empty); SQL statement:
+update token_entry set owner=null where owner=? and processor_name=? and segment=? [42104-214]
+2023-11-25 12:20:20 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "TOKEN_ENTRY" not found (this database is empty); SQL statement:
+update token_entry set owner=null where owner=? and processor_name=? and segment=? [42104-214]

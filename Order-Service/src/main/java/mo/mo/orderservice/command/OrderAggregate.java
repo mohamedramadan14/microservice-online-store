@@ -4,6 +4,7 @@ import mo.mo.orderservice.command.models.OrderStatus;
 import mo.mo.orderservice.core.events.OrderApprovedEvent;
 import mo.mo.orderservice.core.events.OrderCreatedEvent;
 import lombok.NoArgsConstructor;
+import mo.mo.orderservice.core.events.OrderRejectedEvent;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -12,7 +13,6 @@ import org.axonframework.spring.stereotype.Aggregate;
 import org.springframework.beans.BeanUtils;
 
 @Aggregate
-@NoArgsConstructor
 public class OrderAggregate {
     @AggregateIdentifier
     private  String orderId;
@@ -21,7 +21,8 @@ public class OrderAggregate {
     private  Integer qty;
     private  String addressId;
     private OrderStatus orderStatus;
-
+    public OrderAggregate() {
+    }
     @CommandHandler
     public OrderAggregate(CreateOrderCommand createOrderCommand) {
 
@@ -51,18 +52,6 @@ public class OrderAggregate {
         AggregateLifecycle.apply(orderCreatedEvent);
     }
 
-    @CommandHandler
-    public void handle(ApproveOrderCommand approveOrderCommand) {
-        if(approveOrderCommand.getOrderId() == null || approveOrderCommand.getOrderId().isBlank()){
-            throw new IllegalArgumentException("OrderId cannot be empty");
-        }
-        // publish OrderApprovedEvent
-        OrderApprovedEvent orderApprovedEvent = OrderApprovedEvent.builder()
-                .orderId(approveOrderCommand.getOrderId())
-                .orderStatus(OrderStatus.APPROVED)
-                .build();
-        AggregateLifecycle.apply(orderApprovedEvent);
-    }
     @EventSourcingHandler
     public void on(OrderCreatedEvent orderCreatedEvent){
         this.orderId = orderCreatedEvent.getOrderId();
@@ -73,8 +62,34 @@ public class OrderAggregate {
         this.orderStatus = orderCreatedEvent.getOrderStatus();
     }
 
+    @CommandHandler
+    public void handle(ApproveOrderCommand approveOrderCommand) {
+        if(approveOrderCommand.getOrderId() == null || approveOrderCommand.getOrderId().isBlank()){
+            throw new IllegalArgumentException("OrderId cannot be empty");
+        }
+        // publish OrderApprovedEvent
+        OrderApprovedEvent orderApprovedEvent = OrderApprovedEvent.builder()
+                .orderId(approveOrderCommand.getOrderId())
+                .build();
+        AggregateLifecycle.apply(orderApprovedEvent);
+    }
+
     @EventSourcingHandler
     public void on(OrderApprovedEvent orderApprovedEvent){
         this.orderStatus = orderApprovedEvent.getOrderStatus();
+    }
+    @CommandHandler
+    public void handle(RejectOrderCommand rejectOrderCommand){
+        OrderRejectedEvent orderRejectedEvent = OrderRejectedEvent.builder()
+                        .orderId(rejectOrderCommand.getOrderId())
+                        .reason(rejectOrderCommand.getReason())
+                        .build();
+
+        AggregateLifecycle.apply(orderRejectedEvent);
+    }
+
+    @EventSourcingHandler
+    public void on(OrderRejectedEvent orderRejectedEvent){
+        this.orderStatus = orderRejectedEvent.getOrderStatus();
     }
 }

@@ -6,6 +6,7 @@ import mo.mo.orderservice.core.data.entity.OrderEntity;
 import mo.mo.orderservice.core.data.entity.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import mo.mo.orderservice.core.events.OrderRejectedEvent;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.beans.BeanUtils;
@@ -40,6 +41,18 @@ public class OrderEventHandler {
             repository.save(orderEntity);
         }else{
             log.info("Order Not Found: {}", event.getOrderId());
+        }
+    }
+
+    @EventHandler
+    public void on(OrderRejectedEvent orderRejectedEvent){
+        Optional<OrderEntity> order = repository.findByOrderId(orderRejectedEvent.getOrderId());
+        if(order.isPresent()){
+            OrderEntity orderEntity = order.get();
+            orderEntity.setOrderStatus(orderRejectedEvent.getOrderStatus());
+            repository.save(orderEntity);
+        }else{
+            log.info("Order Not Found: {}", orderRejectedEvent.getOrderId());
         }
     }
 }

@@ -1,7 +1,9 @@
 package mo.mo.estore.productservice.command;
 
 
+import mo.core.command.CancelProductReservationCommand;
 import mo.core.command.ReserveProductCommand;
+import mo.core.events.ProductReservationCancelEvent;
 import mo.core.events.ProductReservedEvent;
 import mo.mo.estore.productservice.core.events.ProductCreatedEvent;
 import lombok.NoArgsConstructor;
@@ -15,7 +17,6 @@ import org.springframework.beans.BeanUtils;
 import java.math.BigDecimal;
 
 @Aggregate
-@NoArgsConstructor
 public class ProductAggregate {
 
     @AggregateIdentifier
@@ -24,6 +25,8 @@ public class ProductAggregate {
     private BigDecimal price;
     private int qty;
 
+    ProductAggregate(){
+    }
     @CommandHandler
     public ProductAggregate(CreateProductCommand createProductCommand) {
         if(createProductCommand.getPrice().compareTo(BigDecimal.ZERO) <= 0){
@@ -42,15 +45,6 @@ public class ProductAggregate {
         AggregateLifecycle.apply(productCreatedEvent);
     }
 
-    @CommandHandler
-    public void handle(ReserveProductCommand reserveProductCommand){
-        if (qty < reserveProductCommand.getQty()){
-            throw new IllegalArgumentException("Insufficient number of items in stock");
-        }
-        ProductReservedEvent productReservedEvent = new ProductReservedEvent();
-        BeanUtils.copyProperties(reserveProductCommand, productReservedEvent);
-        AggregateLifecycle.apply(productReservedEvent);
-    }
     @EventSourcingHandler
     public void on(ProductCreatedEvent productCreatedEvent){
         this.productId = productCreatedEvent.getProductId();
@@ -58,9 +52,36 @@ public class ProductAggregate {
         this.price = productCreatedEvent.getPrice();
         this.qty = productCreatedEvent.getQty();
     }
+    @CommandHandler
+    public ProductAggregate(ReserveProductCommand reserveProductCommand){
+        if (qty < reserveProductCommand.getQty()){
+            throw new IllegalArgumentException("Insufficient number of items in stock");
+        }
+        ProductReservedEvent productReservedEvent = new ProductReservedEvent();
+        BeanUtils.copyProperties(reserveProductCommand, productReservedEvent);
+        AggregateLifecycle.apply(productReservedEvent);
+    }
 
     @EventSourcingHandler
     public void on(ProductReservedEvent productReservedEvent){
         this.qty -= productReservedEvent.getQty();
+    }
+
+    @CommandHandler
+    public ProductAggregate (CancelProductReservationCommand cancelProductReservationCommand){
+        ProductReservationCancelEvent productReservationCancelEvent = ProductReservationCancelEvent.builder()
+                .orderId(cancelProductReservationCommand.getOrderId())
+                .userId(cancelProductReservationCommand.getUserId())
+                .productId(cancelProductReservationCommand.getProductId())
+                .qty(cancelProductReservationCommand.getQty())
+                .reason(cancelProductReservationCommand.getReason())
+                .build();
+
+        AggregateLifecycle.apply(productReservationCancelEvent);
+    }
+
+    @EventSourcingHandler
+    public void on(ProductReservationCancelEvent productReservationCancelEvent){
+        this.qty += productReservationCancelEvent.getQty();
     }
 }
